@@ -3,6 +3,7 @@
 Usage: apply-autopause.py STOCK.user.js OUT.user.js RAW_URL
 Exit 2 if the patch can't apply cleanly (anchor missing/ambiguous, header fields missing, or already modded)."""
 import re, sys, os
+MOD_REV = 2  # bump for every mod fix so Tampermonkey sees a newer version
 stock, out, raw = sys.argv[1:4]
 here = os.path.dirname(os.path.abspath(__file__))
 src = open(stock, encoding='utf-8').read()
@@ -11,7 +12,7 @@ def die(m): print('PATCH-FAIL: ' + m, file=sys.stderr); sys.exit(2)
 if 'autoPauseOnFirstLoad' in src: die('stock already contains autoPauseOnFirstLoad')
 m = re.search(r'^// @version\s+(\S+)\s*$', src, re.M)
 if not m: die('no @version')
-author = m.group(1); newver = author + '.1'
+author = m.group(1); newver = '%s.%d' % (author, MOD_REV)
 if src.count('// ==/UserScript==') != 1: die('header end not unique')
 for k in ('@name', '@namespace'):
     if not re.search(r'^// ' + k + r'\s', src, re.M): die('missing ' + k)
