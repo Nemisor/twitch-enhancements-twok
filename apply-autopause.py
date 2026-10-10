@@ -3,7 +3,7 @@
 Usage: apply-autopause.py STOCK.user.js OUT.user.js RAW_URL
 Exit 2 if the patch can't apply cleanly (anchor missing/ambiguous, header fields missing, or already modded)."""
 import re, sys, os
-MOD_REV = 2  # bump for every mod fix so Tampermonkey sees a newer version
+MOD_REV = 3  # bump for every mod fix so Tampermonkey sees a newer version
 stock, out, raw = sys.argv[1:4]
 here = os.path.dirname(os.path.abspath(__file__))
 src = open(stock, encoding='utf-8').read()
@@ -23,8 +23,8 @@ src = src.replace(m.group(0), '// @version      ' + newver, 1)
 src = re.sub(r'^// @(downloadURL|updateURL)\s.*\n', '', src, flags=re.M)
 src = src.replace('// ==/UserScript==',
     '// @downloadURL  %s\n// @updateURL    %s\n// ==/UserScript==\n\n'
-    '// Modified by TWOK: auto-pause on first load (pauses the player once per full page load\n'
-    '// when it first plays; gives up after 30s). Based on author version %s; hosted at github.com/Nemisor/twitch-enhancements-twok.' % (raw, raw, author), 1)
+    '// Modified by TWOK: auto-pause the front-page autoplay video once per full page load\n'
+    '// (never on direct channel loads; gives up after 30s). Based on author version %s; hosted at github.com/Nemisor/twitch-enhancements-twok.' % (raw, raw, author), 1)
 src = src.replace(anchor, '\n\n' + block + anchor, 1)
 open(out, 'w', encoding='utf-8', newline='\n').write(src)
 print('OK author=%s new=%s' % (author, newver))
