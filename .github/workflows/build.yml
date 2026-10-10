@@ -1,0 +1,30 @@
+name: build
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '17 13 * * *'
+  push:
+    branches: [main]
+    paths: ['apply-autopause.py', 'autopause-block.js', '.github/workflows/build.yml']
+permissions:
+  contents: write
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fetch stock script from Greasy Fork
+        run: curl -fsSL 'https://update.greasyfork.org/scripts/494966/Twitch%20Enhancements.user.js' -o /tmp/stock.user.js
+      - name: Apply mod
+        run: python3 apply-autopause.py /tmp/stock.user.js twitch-enhancements-twok.user.js https://raw.githubusercontent.com/Nemisor/twitch-enhancements-twok/main/twitch-enhancements-twok.user.js
+      - name: Syntax check
+        run: node --check twitch-enhancements-twok.user.js
+      - name: Commit if changed
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add twitch-enhancements-twok.user.js
+          if git diff --cached --quiet; then echo 'No change'; exit 0; fi
+          V=$(grep -m1 '^// @version' twitch-enhancements-twok.user.js | awk '{print $3}')
+          git commit -m "Build $V from Greasy Fork stock"
+          git push
